@@ -58,6 +58,31 @@ const ImageGallery = () => {
         }
     }
 
+    // to delete the selected images
+    const deleteSelectedImages = async (selectedImage) => {
+
+        const res = await axiosInstance.delete("/delete-images", {
+            data: selectedImage,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const resData = res.data;
+        if (resData.ok) {
+            console.log('deleted successful');
+            setReload(!reload);
+        }
+        else {
+            console.log('deleted failed');
+        }
+    }
+
+    // filtering selected images from allImages to deleting
+    const handleDeleteFiles = () => {
+        const matchingIds = selectedImage.map(obj2 => obj2._id);
+        const filteredIds = allImage.filter(obj1 => matchingIds.includes(obj1._id));
+        deleteSelectedImages(filteredIds)
+    }
+
     useEffect(() => {
         console.log('render')
         setAllImage(images);
@@ -75,7 +100,7 @@ const ImageGallery = () => {
                     }
                 </span>
                 {
-                    selectedImageCount != 0 && <button >
+                    selectedImageCount != 0 && <button  onClick={handleDeleteFiles}>
                         <span className="text-red-400 font-semibold text-base hover:text-red-500">Delete files</span>
                     </button>
                 }
