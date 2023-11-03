@@ -8,6 +8,12 @@
     grid-gap: 15px; /* Adjust the gap as needed */
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); /* Responsive column layout */
   }
+
+  /* the card-large class occupy the first 2 column of first row and second row */
+.card-large {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
   
   /* Media queries for different screen sizes */
   @media (max-width: 600px) { 

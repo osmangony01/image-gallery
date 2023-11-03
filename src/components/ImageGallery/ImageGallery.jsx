@@ -33,7 +33,9 @@ const ImageGallery = () => {
                     {
                         allImage?.map((item, index) => {
                             return (
-                                <div>
+                                <div
+                                className={`border ${index == 0 && 'card-large'}`}
+                                >
                                     <Image img={item.image}></Image>
                                 </div>
                             )
