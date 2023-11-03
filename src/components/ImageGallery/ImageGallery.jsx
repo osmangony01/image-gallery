@@ -67,8 +67,18 @@ const ImageGallery = () => {
         <div>
             <div className="flex justify-between px-6 py-3">
                 <span className="text-xl font-semibold">
-                    <span>Gallery</span>
+                    {
+                        selectedImageCount == 0 ? <span>Gallery</span> : <span>
+                            <input type="checkbox" checked className="w-[15px] h-[15px]" />
+                            <span className="pl-3">{selectedImageCount} Files Selected</span>
+                        </span>
+                    }
                 </span>
+                {
+                    selectedImageCount != 0 && <button >
+                        <span className="text-red-400 font-semibold text-base hover:text-red-500">Delete files</span>
+                    </button>
+                }
             </div>
             <hr />
             <div className="p-6">
