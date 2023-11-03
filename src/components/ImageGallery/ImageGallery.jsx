@@ -11,6 +11,8 @@ const ImageGallery = () => {
     const [isOpenAddImageModal, setIsOpenAddImageModal] = useState(false);
     const itemDrag = useRef();
     const itemDragOver = useRef();
+    const [selectedImage, setSelectedImage] = useState([]);
+    const [selectedImageCount, setSelectedImageCount] = useState(0);
 
     // to handle add-images pop-up modal
     const handleAddImageModal = (status) => {
@@ -29,6 +31,32 @@ const ImageGallery = () => {
 
         setAllImage(items);
     };
+
+    // handel to select the images when user click the checkbox and count the selected images
+    const handleCheckboxChange = (id) => {
+
+        const exists = selectedImage.some(item => item._id === id);
+        console.log(exists);
+        if (exists) {
+            const filterImg = selectedImage.filter(item => item._id != id)
+            if (filterImg) {
+                let count = filterImg.length;
+                setSelectedImageCount(count)
+            } else {
+                setSelectedImageCount(0)
+            }
+            setSelectedImage([...filterImg]);
+        } else {
+            const newData = [...selectedImage, { _id: id }];
+            if (newData) {
+                let count = newData.length;
+                setSelectedImageCount(count)
+            } else {
+                setSelectedImageCount(0)
+            }
+            setSelectedImage(newData);
+        }
+    }
 
     useEffect(() => {
         console.log('render')
@@ -55,9 +83,19 @@ const ImageGallery = () => {
                                     onDragEnter={(e) => (itemDragOver.current = index)}
                                     onDragEnd={handleImageSort}
                                     onDragOver={(e) => e.preventDefault()}
-                                    className={`border ${index == 0 && 'card-large'}`}
-                                   
+                                    className={`group relative border border-slate-300 rounded-lg cursor-pointer before:rounded-lg before:absolute  before:h-full before:w-full ${index == 0 && 'card-large'} 
+                                    ${selectedImage.some(selectedItem => selectedItem._id === item._id)
+                                            ? "opacity-100" : "hover:before:bg-black/50"
+                                        }`}
                                 >
+                                    <input
+                                        type="checkbox"
+                                        onChange={() => handleCheckboxChange(item._id)}
+                                        className={`absolute top-4 left-4 h-5 w-5 cursor-pointer accent-blue-500 group-hover:opacity-100 transition-opacity delay-100 duration-100 ease-linear  ${selectedImage.some(selectedItem => selectedItem._id === item._id)
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                            }`}
+                                    />
                                     <Image img={item.image}></Image>
                                 </div>
                             )
