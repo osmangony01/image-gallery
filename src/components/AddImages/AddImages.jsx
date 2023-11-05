@@ -1,13 +1,22 @@
 import { useContext, useState } from "react";
 import { RxCross1 } from "react-icons/rx";
+import axiosInstance from "../../routes/axiosInstance";
+import { ContextAPI } from "../../App";
+import { Oval } from "react-loader-spinner";
+import { storage } from "../../firebase/firebase.config";
+import { ref, getDownloadURL, uploadBytes, } from "firebase/storage";
+import { v4 } from "uuid";
 
 const AddImages = ({ isOpen, handleAddImageModal }) => {
-    //const modal = status;
-    //const {} = useContext()
+    
+    const { reload, setReload } = useContext(ContextAPI);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [loading, setLoading] = useState(false)
 
     // to handle pop modal
     const handleModal = () => {
+        setLoading(false);
+        setSelectedFiles([]);
         handleAddImageModal(false);
     }
 
@@ -17,15 +26,43 @@ const AddImages = ({ isOpen, handleAddImageModal }) => {
         setSelectedFiles([...files]);
     }
 
-    // handle file upload to the backend and database
-    const uploadImages = async (formData) => {
+    // this method handle for uploading images, here i upload images in firebase storage
+    const handleReadWriteFiles = async (files) => {
+        const urls = []; // it is used for take all file url after uploading
+
+        // Create an array of Promises for each file's URL retrieval
+        const uploadPromises = [...files].map(async (file) => {
+            const filename = v4() + '-' + file.name.toLocaleLowerCase().split(" ").join("-"); // to create a unique filename for images
+            const imageRef = ref(storage, `images/${filename}`);
+
+            try {
+                await uploadBytes(imageRef, file);
+                const url = await getDownloadURL(imageRef); // after uploading, this method download the url
+                urls.push(url);
+                //console.log('Fetched URL:', url);
+            } catch (error) {
+                console.error("Error uploading or getting download URL: ", error);
+            }
+        });
+
+        // Wait for all the Promises to resolve
+        await Promise.all(uploadPromises);
+
+        return urls;
+    };
+
+    // It is handle to save file urls in mongodb database
+    const uploadImages = async (imgData) => {
         try {
-            const res = await axiosInstance.post("/upload-images", formData);
+            const res = await axiosInstance.post("/upload-images", { imgData });
             const data = res.data;
             if (data.ok) {
                 console.log('Upload successful');
+                setLoading(false)
                 setReload(!reload);
-            }else {
+                handleAddImageModal(false);
+            }
+            else {
                 console.log('Upload failed!!');
             }
         }
@@ -35,16 +72,13 @@ const AddImages = ({ isOpen, handleAddImageModal }) => {
     }
 
     // handle submit form
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
-        const formData = new FormData();
-        [...selectedFiles].forEach((file, i) => {
-            formData.append(`files`, file, file.name);
-        });
-
-        uploadImages(formData)
-        handleAddImageModal(false);
+        const imgUrls = await handleReadWriteFiles(selectedFiles)
+        //console.log(imgUrls)
+        uploadImages(imgUrls)
     }
 
     return (
@@ -72,9 +106,12 @@ const AddImages = ({ isOpen, handleAddImageModal }) => {
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <button type="submit" className="px-4 py-1.5 bg-purple-500 rounded my-4 font-semibold text-white hover:bg-purple-700">
-                                        Upload
+                                <div className="">
+                                    <button type="submit" disabled={loading ? true : false} className={`flex px-4 py-1.5 bg-purple-500 rounded my-4 font-semibold text-white  mt-8 ${loading ? 'cursor-not-allowed' : 'hover:bg-purple-700'}`}>
+                                        <span className="pr-2">Upload</span>
+                                        {
+                                            loading && <Oval height={20} width={20} color="#fff" wrapperStyle={{}} strokeWidth={5} wrapperClass="" visible={true} ariaLabel='oval-loading' secondaryColor="#fff" strokeWidthSecondary={5} />
+                                        }
                                     </button>
                                 </div>
                             </form>

@@ -10,8 +10,8 @@ const App = () => {
     const [images, setImages] = useState([])
     const [reload, setReload] = useState(false);
     
+    // this method fetch images from database  and set the image data in context
     const fetchImages = async () => {
-       
         const response = await axiosInstance.get('/images');
         const data = response.data;
         if (data) {
@@ -30,7 +30,7 @@ const App = () => {
         setImages,
         setReload
     }
-    console.log(images)
+    //console.log(images)
     return (
         <ContextAPI.Provider value={info}>
             <div>

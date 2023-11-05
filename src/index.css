@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body{
+  background-color: #ebebed;
+}
+
 /* grid card */
 .grid-container {
     display: grid;
@@ -32,4 +36,8 @@
     .grid-container {
       grid-template-columns: repeat(5, 1fr);
     }
+  }
+
+  .transition-transform {
+    transition: transform 1s ease; 
   }

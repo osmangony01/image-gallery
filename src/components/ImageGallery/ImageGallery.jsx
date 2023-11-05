@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { FaRegImage, } from "react-icons/fa6";
 import AddImages from "../AddImages/AddImages";
 import { ContextAPI } from "../../App";
-import Image from "./Image";
+import axiosInstance from "../../routes/axiosInstance";
 
 const ImageGallery = () => {
 
@@ -36,7 +36,6 @@ const ImageGallery = () => {
     const handleCheckboxChange = (id) => {
 
         const exists = selectedImage.some(item => item._id === id);
-        console.log(exists);
         if (exists) {
             const filterImg = selectedImage.filter(item => item._id != id)
             if (filterImg) {
@@ -58,33 +57,34 @@ const ImageGallery = () => {
         }
     }
 
-    // to delete the selected images
+    // this method handle to delete the images from database
     const deleteSelectedImages = async (selectedImage) => {
 
         const res = await axiosInstance.delete("/delete-images", {
             data: selectedImage,
             headers: { 'Content-Type': 'application/json' }
         });
-
         const resData = res.data;
         if (resData.ok) {
             console.log('deleted successful');
             setReload(!reload);
+            setSelectedImage([])
+            setSelectedImageCount(0)
         }
         else {
             console.log('deleted failed');
         }
     }
 
-    // filtering selected images from allImages to deleting
+    // filtering selected images from allImages for deleting and finally delete the selected images from db
     const handleDeleteFiles = () => {
         const matchingIds = selectedImage.map(obj2 => obj2._id);
         const filteredIds = allImage.filter(obj1 => matchingIds.includes(obj1._id));
         deleteSelectedImages(filteredIds)
     }
 
+    // this hook set images in components state from context api
     useEffect(() => {
-        console.log('render')
         setAllImage(images);
     }, [images])
 
@@ -118,25 +118,24 @@ const ImageGallery = () => {
                                     onDragEnter={(e) => (itemDragOver.current = index)}
                                     onDragEnd={handleImageSort}
                                     onDragOver={(e) => e.preventDefault()}
-                                    className={`group relative border border-slate-300 rounded-lg cursor-pointer before:rounded-lg before:absolute  before:h-full before:w-full ${index == 0 && 'card-large'} 
+                                    className={`group relative border border-slate-300 rounded-lg cursor-pointer before:rounded-lg before:absolute  before:h-full before:w-full  ${index == 0 && 'card-large'} 
                                     ${selectedImage.some(selectedItem => selectedItem._id === item._id)
-                                            ? "opacity-100" : "hover:before:bg-black/50"
+                                            ? "opacity-100 before:bg-slate-500 before:opacity-10 transition-all duration-1000" : "hover:before:bg-black/50 transition-all duration-1000"
                                         }`}
                                 >
                                     <input
                                         type="checkbox"
                                         onChange={() => handleCheckboxChange(item._id)}
-                                        className={`absolute top-4 left-4 h-5 w-5 cursor-pointer accent-blue-500 group-hover:opacity-100 transition-opacity delay-100 duration-100 ease-linear  ${selectedImage.some(selectedItem => selectedItem._id === item._id)
+                                        className={`absolute top-4 left-4  cursor-pointer accent-blue-500 group-hover:opacity-100 transition-opacity delay-100 duration-100 ease-linear h-5 w-5 ${selectedImage.some(selectedItem => selectedItem._id === item._id)
                                             ? "opacity-100"
                                             : "opacity-0"
                                             }`}
                                     />
-                                    <Image img={item.image}></Image>
+                                    <img src={item.image} alt='img' className="w-full h-full max-w-full rounded-lg object-contain color:transparent"/>
                                 </div>
                             )
                         })
                     }
-
                     <div className=' flex justify-center items-center rounded-lg p-4 border-dotted border-2 border-slate-400 flex-col hover:bg-slate-100 cursor-pointer' onClick={() => handleAddImageModal(true)}>
                         <div className=''><FaRegImage></FaRegImage></div>
                         <p className='text-center pt-3'>Add Images</p>
